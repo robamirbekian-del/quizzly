@@ -285,6 +285,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min
 <!-- GLOBAL DROPDOWN -->
 <div id="global-dd" style="position:fixed;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 8px 32px rgba(99,102,241,0.16);min-width:150px;display:none;z-index:9999">
   <div class="dd-item" onclick="go('screen-account');closeDD()">My Account</div>
+  <div class="dd-item" onclick="closeDD();openApiKey()">🔑 API Key</div>
   <div class="dd-item red" onclick="logout()">Logout</div>
 </div>
 
@@ -610,6 +611,12 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
     <div class="acct-section">
+      <div class="acct-section-title">AI Quiz Generation</div>
+      <div class="acct-card">
+        <div class="acct-row"><div class="acct-row-left"><div class="acct-row-icon">🔑</div><div><div class="acct-row-label">Anthropic API Key</div><div class="acct-row-value" id="val-apikey">Not set</div></div></div><div style="display:flex;gap:8px"><button class="acct-row-action" id="apikey-remove-btn" onclick="removeApiKey()" style="display:none">Remove</button><button class="acct-row-action" onclick="openApiKey()">Edit</button></div></div>
+      </div>
+    </div>
+    <div class="acct-section">
       <div class="acct-section-title">Danger Zone</div>
       <div class="acct-card">
         <div class="acct-row"><div class="acct-row-left"><div class="acct-row-icon" style="background:#fff5f5">🗑️</div><div><div class="acct-row-label">Delete Account</div><div class="acct-row-value" style="font-size:0.85rem;color:var(--mid);font-weight:400">Permanently remove your account and all data</div></div></div><button class="btn-danger-outline" onclick="openDeleteConfirm()">Delete</button></div>
@@ -904,6 +911,7 @@ async function startQuiz(){
   const qType=document.getElementById('sel-qtype').value
 
   if(bank.rawText){
+    if(!getApiKey()){openApiKey();return}
     const btn=document.getElementById('gen-btn')
     btn.disabled=true;btn.textContent='Generating…'
     document.getElementById('loader').classList.add('show')
@@ -931,6 +939,29 @@ async function startQuiz(){
   go('screen-quiz')
 }
 
+// ─── API KEY ─────────────────────────────────────
+// Stored only in this browser (localStorage) and sent only to api.anthropic.com.
+const API_KEY_STORAGE='studybuddy_anthropic_key'
+function getApiKey(){try{return localStorage.getItem(API_KEY_STORAGE)||''}catch(e){return ''}}
+function setApiKey(k){try{k?localStorage.setItem(API_KEY_STORAGE,k):localStorage.removeItem(API_KEY_STORAGE)}catch(e){}renderApiKeyStatus()}
+function maskKey(k){return k?k.slice(0,10)+'••••••••'+k.slice(-4):'Not set'}
+function renderApiKeyStatus(){
+  const k=getApiKey()
+  const el=document.getElementById('val-apikey');if(el)el.textContent=maskKey(k)
+  const rm=document.getElementById('apikey-remove-btn');if(rm)rm.style.display=k?'':'none'
+}
+function openApiKey(){
+  editTarget={field:'apikey',type:'apikey'}
+  document.getElementById('edit-modal-title').textContent='Anthropic API Key'
+  document.getElementById('edit-modal-sub').innerHTML='Paste your key to generate quizzes from your own articles. Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. It is saved only in this browser.'
+  document.getElementById('edit-modal-body').innerHTML='<input type="password" id="edit-input" placeholder="sk-ant-..." autocomplete="off" class="edit-input-style"/>'
+  document.getElementById('edit-input').value=getApiKey()
+  document.getElementById('edit-modal').classList.add('open')
+  setTimeout(()=>document.getElementById('edit-input').focus(),100)
+}
+function removeApiKey(){setApiKey('');showToast('API key removed')}
+document.addEventListener('DOMContentLoaded',renderApiKeyStatus)
+
 // ─── CLAUDE API ──────────────────────────────────
 async function callClaude(text,difficulty,qType,count){
   const isTF=qType.includes('True')
@@ -951,19 +982,28 @@ ${text.substring(0,4000)}`
     method:'POST',
     headers:{
       'Content-Type':'application/json',
+      'x-api-key':getApiKey(),
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true',
     },
     body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',
+      model:'claude-sonnet-5-5',
       max_tokens:2000,
       messages:[{role:'user',content:prompt}]
     })
   })
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error')}
+  if(!res.ok){
+    let msg='API error ('+res.status+')'
+    try{const e=await res.json();msg=e.error?.message||msg}catch(_){}
+    if(res.status===401)msg='Your API key was rejected. Check it under Settings → API Key.'
+    throw new Error(msg)
+  }
   const data=await res.json()
   const raw=data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim()
-  return JSON.parse(raw)
+  const start=raw.indexOf('{'),end=raw.lastIndexOf('}')
+  const parsed=JSON.parse(start>=0?raw.slice(start,end+1):raw)
+  if(!Array.isArray(parsed.questions)||!parsed.questions.length)throw new Error('The AI returned no questions. Try again.')
+  return parsed
 }
 
 // ─── RENDER QUESTION ─────────────────────────────
@@ -1170,6 +1210,11 @@ function saveEdit(){
   if(!editTarget)return
   const input=document.getElementById('edit-input'),value=input.value.trim()
   if(!value){input.style.borderColor='var(--danger)';return}
+  if(editTarget.field==='apikey'){
+    if(!value.startsWith('sk-')){input.style.borderColor='var(--danger)';return}
+    setApiKey(value);closeEditModal()
+    showToast('API key saved! You can now generate quizzes.');return
+  }
   if(editTarget.field==='password'){
     const conf=document.getElementById('edit-input-confirm').value.trim()
     if(value!==conf){document.getElementById('edit-input-confirm').style.borderColor='var(--danger)';return}
