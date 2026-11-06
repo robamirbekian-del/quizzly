@@ -1,0 +1,290 @@
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS
+   All colours, fonts, and shadows live here.
+   Change a value once, it updates everywhere.
+───────────────────────────────────────────── */
+:root {
+  /* Colours */
+  --ink:        #0f0e0c;
+  --cream:      #faf8f3;
+  --gold:       #e8b84b;
+  --gold-light: #f5d88a;
+  --rust:       #c94a2a;
+  --sage:       #4a7c59;
+  --fog:        #e8e4dc;
+  --mid:        #7a7469;
+  --white:      #ffffff;
+
+  /* Shadows */
+  --shadow:    0 4px 24px rgba(15, 14, 12, 0.1);
+  --shadow-lg: 0 12px 48px rgba(15, 14, 12, 0.18);
+  --shadow-brutal:     6px 6px 0 var(--ink);
+  --shadow-brutal-gold: 6px 6px 0 var(--gold);
+
+  /* Typography */
+  --font-display: 'Playfair Display', serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+
+  /* Spacing */
+  --page-padding: 40px;
+  --page-max:     820px;
+}
+
+/* ─────────────────────────────────────────────
+   RESET
+───────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+/* ─────────────────────────────────────────────
+   PAGE LAYOUT
+   Wrap page content in .page for consistent
+   max-width and padding.
+───────────────────────────────────────────── */
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 48px var(--page-padding);
+  width: 100%;
+}
+
+.page--narrow { max-width: 680px; }
+.page--wide   { max-width: 960px; }
+
+/* ─────────────────────────────────────────────
+   SHARED TYPOGRAPHY
+───────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.section-sub {
+  color: var(--mid);
+  font-size: 0.97rem;
+  line-height: 1.65;
+  margin-bottom: 40px;
+}
+
+.deco-line {
+  height: 3px;
+  width: 48px;
+  background: var(--gold);
+  border-radius: 2px;
+  margin-bottom: 20px;
+}
+
+/* ─────────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────────── */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 13px 28px;
+  border-radius: 8px;
+  border: 2px solid var(--ink);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn--primary {
+  background: var(--ink);
+  color: var(--cream);
+}
+.btn--primary:hover:not(:disabled) {
+  background: #2a2823;
+  transform: translateY(-1px);
+  box-shadow: 4px 4px 0 var(--gold);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--fog);
+}
+
+.btn--gold {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+}
+.btn--gold:hover:not(:disabled) {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.btn--lg {
+  padding: 16px 36px;
+  font-size: 1.05rem;
+}
+
+/* ─────────────────────────────────────────────
+   PILLS (selectable option chips)
+───────────────────────────────────────────── */
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  padding: 9px 20px;
+  border: 2px solid var(--ink);
+  border-radius: 30px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: var(--white);
+  transition: all 0.15s;
+  user-select: none;
+}
+.pill:hover          { background: var(--fog); }
+.pill--selected      { background: var(--ink); color: var(--cream); }
+
+/* ─────────────────────────────────────────────
+   CARDS
+───────────────────────────────────────────── */
+.card {
+  background: var(--white);
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: var(--shadow-brutal);
+}
+
+/* ─────────────────────────────────────────────
+   SCORE PILLS
+───────────────────────────────────────────── */
+.score-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+.score-pill--high { background: #edf6f0; color: var(--sage); }
+.score-pill--mid  { background: #fdf6e3; color: #b07c10; }
+.score-pill--low  { background: #fdf0ed; color: var(--rust); }
+
+/* ─────────────────────────────────────────────
+   DIFFICULTY BADGES
+───────────────────────────────────────────── */
+.diff-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1.5px solid;
+  margin-bottom: 14px;
+}
+.diff-badge--easy   { color: var(--sage); border-color: var(--sage); background: #edf6f0; }
+.diff-badge--medium { color: #b07c10;     border-color: #dba830;     background: #fdf6e3; }
+.diff-badge--hard   { color: var(--rust); border-color: var(--rust);  background: #fdf0ed; }
+
+/* ─────────────────────────────────────────────
+   SLIDER
+───────────────────────────────────────────── */
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+input[type=range] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--fog);
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  cursor: pointer;
+  border: 3px solid var(--cream);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+.slider-val {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  min-width: 32px;
+  text-align: center;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+/* ─────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────── */
+@media (max-width: 600px) {
+  :root {
+    --page-padding: 20px;
+  }
+  .page {
+    padding: 32px var(--page-padding);
+  }
+}
